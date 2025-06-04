@@ -62,6 +62,8 @@ dependencies {
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
+    implementation(libs.androidx.espresso.core)
+    implementation(libs.androidx.appcompat)
 
     val nav_version = "2.8.8"
     implementation("androidx.navigation:navigation-compose:$nav_version")
@@ -86,6 +88,16 @@ dependencies {
     debugImplementation(libs.androidx.ui.test.manifest)
 
     implementation(libs.androidx.material.icons.extended)
+
+    implementation("io.metamask.androidsdk:metamask-android-sdk:0.2.1")
+
+    implementation("com.google.dagger:hilt-android:2.48")
+    kapt("com.google.dagger:hilt-compiler:2.48")
+    implementation("androidx.hilt:hilt-navigation-compose:1.1.0")
+
+    implementation("io.metamask.androidsdk:metamask-android-sdk:0.3.0")
+
+    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.7.0")
 
 }
 
