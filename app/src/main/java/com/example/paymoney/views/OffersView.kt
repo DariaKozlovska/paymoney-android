@@ -10,12 +10,17 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.paymoney.EventSink
+import com.example.paymoney.MainUiState
 import com.example.paymoney.ui.theme.Blue
 import com.example.paymoney.ui.theme.Gray
 import com.example.paymoney.utils.CustomDropdown
 
 @Composable
-fun OffersView() {
+fun OffersView(
+    uiState: MainUiState,
+    onEvent: (EventSink) -> Unit
+) {
     val blockchainOptions = listOf("Ethereum", "Polygon")
     val allowedCurrenciesForBlockchain = remember {
         mapOf(
@@ -93,7 +98,8 @@ fun OffersView() {
                 .fillMaxWidth()
                 .height(50.dp),
             colors = ButtonDefaults.buttonColors(containerColor = Blue),
-            shape = RoundedCornerShape(8.dp)
+            shape = RoundedCornerShape(8.dp),
+            enabled = uiState.isConnected
         ) {
             Text(text = "Create Offer", color = Color.White, fontSize = 18.sp)
         }

@@ -85,7 +85,10 @@ fun MainScreen(viewModel: MainViewModel) {
     ) { innerPadding ->
         Box(modifier = Modifier.padding(innerPadding)) {
             when (selectedTabIndex) {
-                0 -> OffersView()
+                0 -> OffersView(
+                    uiState = uiState,
+                    onEvent = { viewModel.eventSink(it) }
+                )
                 1 -> AccountView(
                     uiState = uiState,
                     onEvent = { viewModel.eventSink(it) }
