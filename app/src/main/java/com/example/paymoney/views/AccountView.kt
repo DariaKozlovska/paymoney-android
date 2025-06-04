@@ -70,7 +70,7 @@ fun AccountView(
             horizontalArrangement = Arrangement.SpaceEvenly
         ){
             Button(
-                onClick = {/* TODO */},
+                onClick = {},
                 modifier = Modifier
                     .height(56.dp)
                     .weight(1f),

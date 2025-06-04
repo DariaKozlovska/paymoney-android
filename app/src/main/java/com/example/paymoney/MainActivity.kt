@@ -53,13 +53,11 @@ fun MainScreen(viewModel: MainViewModel) {
     val uiState by viewModel.uiState.collectAsState()
     val uiEvent by viewModel.uiEvent.collectAsState()
 
-    // Handle UI events
     LaunchedEffect(uiEvent) {
         uiEvent?.let { event ->
             when (event) {
                 is UIEvent.ShowMessage -> {
-                    // You can show a snackbar or toast here
-                    println("Message: ${event.message}") // For debugging
+                    println("Message: ${event.message}")
                 }
             }
             viewModel.clearEvent()
@@ -73,7 +71,6 @@ fun MainScreen(viewModel: MainViewModel) {
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
     ) {
-        // Connection Status
         Text(
             text = if (uiState.isConnected) "Connected" else "Not Connected",
             fontSize = 16.sp,
@@ -82,7 +79,6 @@ fun MainScreen(viewModel: MainViewModel) {
 
         Spacer(modifier = Modifier.height(8.dp))
 
-        // Address
         if (uiState.address.isNotEmpty()) {
             Text(
                 text = "Address: ${uiState.address}",
@@ -92,7 +88,6 @@ fun MainScreen(viewModel: MainViewModel) {
             Spacer(modifier = Modifier.height(16.dp))
         }
 
-        // Connect/Disconnect Button
         Button(
             onClick = {
                 if (uiState.isConnected) {
@@ -110,6 +105,17 @@ fun MainScreen(viewModel: MainViewModel) {
                 else "Connect Wallet"
             )
         }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Button(
+            onClick = { viewModel.eventSink(EventSink.SignMessage) },
+            enabled = uiState.isConnected,
+            colors = ButtonDefaults.buttonColors(containerColor = Blue)
+        ) {
+            Text("Sign Message")
+        }
+
 
         Spacer(modifier = Modifier.height(16.dp))
 
