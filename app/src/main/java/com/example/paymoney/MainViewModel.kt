@@ -18,16 +18,17 @@ sealed class UIEvent {
 
 sealed class EventSink {
     object Connect : EventSink()
-    object GetBalance : EventSink()
     object Disconnect : EventSink()
-    object SignMessage : EventSink() // ✅ added for triggering from UI
+    object SignMessage : EventSink()
 }
 
 data class MainUiState(
     val isConnecting: Boolean = false,
     val isConnected: Boolean = false,
+    val isSigned: Boolean = false,
     val balance: String = "0 ETH",
-    val address: String = ""
+    val address: String = "",
+    val chainId: String = ""
 )
 
 class MainViewModel(
@@ -58,7 +59,6 @@ class MainViewModel(
         viewModelScope.launch {
             when (event) {
                 EventSink.Connect -> connectWallet()
-                EventSink.GetBalance -> getBalance()
                 EventSink.Disconnect -> disconnectWallet()
                 EventSink.SignMessage -> signMessage()
             }
@@ -77,8 +77,6 @@ class MainViewModel(
                     }
                     is Result.Success -> {
                         Log.d(TAG, "Connection success: ${result}")
-                        Log.d(TAG, "Result class: ${result::class.java}")
-                        Log.d(TAG, "Result class: ${result::class.simpleName}")
                         val item = result as Result.Success.Item
                         val accounts = item.value
                         Log.d(TAG, "Unwrapped data: $accounts")
@@ -91,6 +89,8 @@ class MainViewModel(
                                 )
                             }
                             showMessage("Connected successfully!")
+                            signMessage()
+                            getChainId()
                         } else {
                             updateState { it.copy(isConnecting = false) }
                             showMessage("Connection failed: No accounts returned")
@@ -125,56 +125,46 @@ class MainViewModel(
                         if (signature != null) {
                             Log.d(TAG, "Signature: $signature")
                             showMessage("Signature received!")
+                            updateState { it.copy(isSigned = true) }
                         } else {
                             showMessage("No signature returned")
+                            updateState { it.copy(isSigned = false) }
                         }
                     }
 
                     is Result.Error -> {
                         Log.e(TAG, "Signing error: ${result.error.message}")
                         showMessage("Signing failed: ${result.error.message}")
+                        updateState { it.copy(isSigned = false) }
                     }
                 }
             }
         }
     }
 
-    private fun getBalance() {
+    private fun getChainId() {
         val address = uiState.value.address
-        if (!uiState.value.isConnected || address.isEmpty()) {
-            showMessage("Please connect wallet first")
-            return
-        }
 
-        val request = EthereumRequest(
-            method = "eth_getBalance",
+        ethereum.sendRequest (request = EthereumRequest(
+            method = "eth_chainId",
             params = listOf(address, "latest")
-        )
-
-        ethereum.sendRequest(request) { result ->
+        )) { result ->
             viewModelScope.launch {
                 when (result) {
-                    is Result.Error -> {
-                        showMessage("Failed to get balance: ${result.error.message}")
-                    }
-
                     is Result.Success -> {
                         val item = result as? Result.Success.Item
-                        val balanceHex = item?.value as? String ?: "0x0"
-
-                        try {
-                            val cleanHex = balanceHex.removePrefix("0x")
-                            val balanceWei = cleanHex.toBigIntegerOrNull(16) ?: BigInteger.ZERO
-                            val balanceEth = balanceWei.toBigDecimal()
-                                .divide(BigInteger.TEN.pow(18).toBigDecimal())
-
-                            updateState {
-                                it.copy(balance = String.format("%.6f ETH", balanceEth))
-                            }
-                        } catch (e: Exception) {
-                            updateState { it.copy(balance = "Error") }
-                            showMessage("Error parsing balance: ${e.message}")
+                        val chainIds = item?.value as? String
+                        showMessage("Chain ID: $chainIds")
+                        Log.d("MetaMask", "Chain ID: $chainIds")
+                        updateState {
+                            it.copy(
+                                chainId = chainIds.toString()
+                            )
                         }
+
+                    }
+                    is Result.Error -> {
+                        showMessage("Chain ID Error: ${result.error.message}")
                     }
                 }
             }
@@ -189,7 +179,9 @@ class MainViewModel(
                     isConnected = false,
                     isConnecting = false,
                     address = "",
-                    balance = "0 ETH"
+                    balance = "0 ETH",
+                    chainId = "",
+                    isSigned = false
                 )
             }
             showMessage("Disconnected successfully")

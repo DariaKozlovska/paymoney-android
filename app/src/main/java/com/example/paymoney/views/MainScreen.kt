@@ -26,10 +26,14 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.paymoney.ui.theme.Blue
 import com.example.paymoney.ui.theme.Gray
+import androidx.compose.runtime.*
+import com.example.paymoney.MainViewModel
+import com.example.paymoney.EventSink
 
 @Composable
-fun MainScreen() {
+fun MainScreen(viewModel: MainViewModel) {
     var selectedTabIndex by remember { mutableIntStateOf(0) }
+    val uiState by viewModel.uiState.collectAsState()
     val tabs = listOf(
         TabItem("Offers", Icons.Filled.ListAlt),
         TabItem("Account", Icons.Filled.AccountCircle),
@@ -82,7 +86,10 @@ fun MainScreen() {
         Box(modifier = Modifier.padding(innerPadding)) {
             when (selectedTabIndex) {
                 0 -> OffersView()
-                1 -> AccountView()
+                1 -> AccountView(
+                    uiState = uiState,
+                    onEvent = { viewModel.eventSink(it) }
+                )
                 2 -> RevolutTab()
             }
         }
@@ -96,3 +103,4 @@ data class TabItem(val title: String, val icon: ImageVector)
 fun RevolutTab() {
     Text("Revolut content", modifier = Modifier.padding(16.dp))
 }
+

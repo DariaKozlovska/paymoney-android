@@ -1,5 +1,6 @@
 package com.example.paymoney.views
 
+import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -25,15 +26,13 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.paymoney.ui.theme.Blue
-import io.metamask.androidsdk.Ethereum
+import com.example.paymoney.EventSink
+import com.example.paymoney.MainUiState
 
 @Composable
 fun AccountView(
-    onViewOffers: () -> Unit = {},
-    onViewTransactions: () -> Unit = {},
-    onCreateAffiliation: () -> Unit = {},
-    onConnectWallet: () -> Unit = {},
-    onDisconnect: () -> Unit = {}
+    uiState: MainUiState,
+    onEvent: (EventSink) -> Unit
 ) {
     Column (
         modifier = Modifier
@@ -45,43 +44,42 @@ fun AccountView(
             fontWeight = FontWeight.W700,
             modifier = Modifier.padding(bottom = 16.dp)
         )
-        AccountSection(
-            title = "Network",
-            items = listOf()
+
+        InfoRow("Network", "Ethereum") // You could later make this dynamic
+        InfoRow("Status", if (uiState.isConnected && uiState.isSigned) "Signed" else if (uiState.isConnected) "Connected" else "")
+        InfoRow("Chain ID", if (uiState.chainId.isNotEmpty()) "${uiState.chainId}" else "") // Add real Chain ID if available
+        InfoRow(
+            "Account",
+            uiState.address.takeIf { it.length >= 10 }?.let {
+                "${it.take(4)}...${it.takeLast(4)}"
+            } ?: ""
         )
-        AccountSection(
-            title = "Status",
-            items = listOf()
-        )
-        AccountSection(
-            title = "Chain ID",
-            items = listOf()
-        )
-        AccountSection(
-            title = "Account",
-            items = listOf()
-        )
-        AccountSection(
-            title = "Balance",
-            items = listOf()
-        )
+        InfoRow("Balance", uiState.balance)
+
+
         Row (
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceEvenly
         ){
             Button(
-                onClick = {},
+                onClick = {
+                    if (!uiState.isConnected) {
+                        onEvent(EventSink.Connect)
+                    } else {
+                        onEvent(EventSink.SignMessage)
+                    }
+                },
                 modifier = Modifier
                     .height(56.dp)
                     .weight(1f),
                 colors = ButtonDefaults.buttonColors(containerColor = Blue),
                 shape = RoundedCornerShape(8.dp)
             ) {
-                Text("Connect & Sign Metamask", textAlign = TextAlign.Center, fontSize = 16.sp)
+                Text("Connect and Sign Metamask", textAlign = TextAlign.Center, fontSize = 16.sp)
             }
             Spacer(modifier = Modifier.width(8.dp))
             Button(
-                onClick = { /* TODO */},
+                onClick = { onEvent(EventSink.Disconnect)},
                 modifier = Modifier
                     .height(56.dp)
                     .weight(1f),
@@ -95,41 +93,16 @@ fun AccountView(
     }
 }
 
+
 @Composable
-private fun AccountSection(
-    title: String,
-    items: List<AccountItem>
-) {
+private fun InfoRow(label: String, value: String) {
     Row(
         modifier = Modifier
-            .padding(bottom = 16.dp)
+            .padding(vertical = 6.dp)
+            .fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween
     ) {
-        Text(
-            text = title,
-        )
-        items.forEach { item ->
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Text(
-                    text = item.text
-                )
-                if (item.withCheckmark) {
-                    Icon(
-                        imageVector = Icons.Default.Check,
-                        contentDescription = "Verified",
-                        tint = Color.Green,
-                        modifier = Modifier
-                            .padding(start = 4.dp)
-                            .size(16.dp)
-                    )
-                }
-            }
-        }
+        Text(label, fontWeight = FontWeight.SemiBold)
+        Text(value, color = Color.DarkGray)
     }
 }
-
-private data class AccountItem(
-    val text: String,
-    val withCheckmark: Boolean
-)
