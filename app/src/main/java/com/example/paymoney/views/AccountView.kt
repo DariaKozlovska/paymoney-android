@@ -28,12 +28,33 @@ import androidx.compose.ui.unit.sp
 import com.example.paymoney.ui.theme.Blue
 import com.example.paymoney.EventSink
 import com.example.paymoney.MainUiState
+import android.content.ActivityNotFoundException
+import android.content.Intent
+import android.net.Uri
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.ui.platform.LocalContext
 
 @Composable
 fun AccountView(
     uiState: MainUiState,
-    onEvent: (EventSink) -> Unit
+    onEvent: (EventSink) -> Unit,
+//    onClearMetaMaskLaunchFlag: () -> Unit
 ) {
+//    val context = LocalContext.current
+//
+//    LaunchedEffect(uiState.shouldLaunchMetaMask) {
+//        if (uiState.shouldLaunchMetaMask) {
+//            val uri = Uri.parse("metamask://connect")
+//            val intent = Intent(Intent.ACTION_VIEW, uri)
+//            try {
+//                context.startActivity(intent)
+//            } catch (e: ActivityNotFoundException) {
+//                Log.e("AccountView", "MetaMask is not installed.")
+//            }
+//            onClearMetaMaskLaunchFlag()
+//        }
+//    }
+
     Column (
         modifier = Modifier
         .padding(16.dp)
@@ -45,9 +66,9 @@ fun AccountView(
             modifier = Modifier.padding(bottom = 16.dp)
         )
 
-        InfoRow("Network", "Ethereum") // You could later make this dynamic
+        InfoRow("Network", "Ethereum")
         InfoRow("Status", if (uiState.isConnected && uiState.isSigned) "Signed" else if (uiState.isConnected) "Connected" else "")
-        InfoRow("Chain ID", if (uiState.chainId.isNotEmpty()) "${uiState.chainId}" else "") // Add real Chain ID if available
+        InfoRow("Chain ID", if (uiState.chainId.isNotEmpty()) "${uiState.chainId}" else "")
         InfoRow(
             "Account",
             uiState.address.takeIf { it.length >= 10 }?.let {

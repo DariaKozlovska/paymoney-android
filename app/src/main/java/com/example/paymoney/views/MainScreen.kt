@@ -92,6 +92,7 @@ fun MainScreen(viewModel: MainViewModel) {
                 1 -> AccountView(
                     uiState = uiState,
                     onEvent = { viewModel.eventSink(it) }
+//                    onClearMetaMaskLaunchFlag = { viewModel.clearMetaMaskLaunchFlag() }
                 )
                 2 -> RevolutTab()
             }

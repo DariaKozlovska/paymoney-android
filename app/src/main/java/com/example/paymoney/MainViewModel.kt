@@ -10,7 +10,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import java.math.BigInteger
 
 sealed class UIEvent {
     data class ShowMessage(val message: String) : UIEvent()
@@ -28,7 +27,8 @@ data class MainUiState(
     val isSigned: Boolean = false,
     val balance: String = "0 ETH",
     val address: String = "",
-    val chainId: String = ""
+    val chainId: String = "",
+    val shouldLaunchMetaMask: Boolean = false
 )
 
 class MainViewModel(
@@ -73,13 +73,11 @@ class MainViewModel(
                 when (result) {
                     is Result.Error -> {
                         updateState { it.copy(isConnecting = false) }
-                        showMessage("Connection failed : ${result.error.message}")
+                        showMessage("Connection failed: ${result.error.message}")
                     }
                     is Result.Success -> {
-                        Log.d(TAG, "Connection success: ${result}")
                         val item = result as Result.Success.Item
                         val accounts = item.value
-                        Log.d(TAG, "Unwrapped data: $accounts")
                         if (accounts?.isNotEmpty() == true) {
                             updateState {
                                 it.copy(
@@ -89,17 +87,16 @@ class MainViewModel(
                                 )
                             }
                             showMessage("Connected successfully!")
-                            signMessage()
-                            getChainId()
                         } else {
                             updateState { it.copy(isConnecting = false) }
-                            showMessage("Connection failed: No accounts returned")
+                            showMessage("No accounts returned")
                         }
                     }
                 }
             }
         }
     }
+
 
     private fun signMessage() {
         val address = uiState.value.address
@@ -194,7 +191,6 @@ class MainViewModel(
         _uiEvent.value = null
     }
 
-    // ✅ ByteArray.toHex() extension
     private fun ByteArray.toHex(): String =
         joinToString("") { "%02x".format(it) }
 }
